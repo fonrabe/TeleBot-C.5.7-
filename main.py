@@ -1,12 +1,8 @@
 import telebot
 
-exchange = {
-    'доллар' : 'USD',
-    'евро' : 'EURO',
-    'рубль' : 'RUB',
-}
+from config import *
+from utils import Converter, ApiException
 
-TOKEN = "6244157845:AAHx0agwgu9sc5a77M0cECWJShwHVc2Bifo"
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -21,6 +17,19 @@ def values(message: telebot.types.Message):
     for i in exchange.keys():
         text = '\n'.join((text, i))
     bot.reply_to(message, text)
+
+@bot.message_handler(content_types=['text'])
+def converter(message: telebot.types.Message):
+    try:
+        base_key, sym_key, amount = message.text.split()
+    except ValueError as e:
+        bot.reply_to(message, 'Неверное количество параметров!')
+
+    try:
+        new_price = Converter.get_price(base_key, sym_key, amount)
+        bot.reply_to(message, f"Цена {amount} {base_key} в {sym_key} : {new_price}")
+    except ApiException as e:
+        bot.reply_to(message, f"Ошибка в команде: \n{e}")
 
 bot.polling()
 
