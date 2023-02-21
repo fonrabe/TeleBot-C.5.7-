@@ -18,18 +18,32 @@ def values(message: telebot.types.Message):
         text = '\n'.join((text, i))
     bot.reply_to(message, text)
 
-@bot.message_handler(content_types=['text'])
-def converter(message: telebot.types.Message):
-    try:
-        base_key, sym_key, amount = message.text.split()
-    except ValueError as e:
-        bot.reply_to(message, 'Неверное количество параметров!')
+@bot.message_handler(commands= ['convert'])
+def values(message: telebot.types.Message):
+    text  = 'Выберите валюту из которой конвертировать:'
+    bot.reply_to(message, text)
+    bot.register_next_step_handler(message, base_handler)
 
+def base_handler(message: telebot.types.Message):
+    base = message.text.strip()
+    text = 'Выберите валюту в которую конвертировать:'
+    bot.reply_to(message, text)
+    bot.register_next_step_handler(message, sym_handler, base)
+
+def sym_handler(message: telebot.types.Message, base):
+    sym = message.text.strip()
+    text = 'Выберите количество конвертируемой валюты:'
+    bot.reply_to(message, text)
+    bot.register_next_step_handler(message, amount_handler, base, sym)
+
+def amount_handler(message: telebot.types.Message, base, sym):
+    amount = message.text.strip()
     try:
-        new_price = Converter.get_price(base_key, sym_key, amount)
-        bot.reply_to(message, f"Цена {amount} {base_key} в {sym_key} : {new_price}")
+        new_price = Converter.get_price(base, sym, amount)
     except ApiException as e:
-        bot.reply_to(message, f"Ошибка в команде: \n{e}")
+        bot.send_message(message, f"")
+    text = f"Цена {amount} {base} в {sym} : {new_price}"
+    bot.reply_to(message, text)
 
 bot.polling()
 
