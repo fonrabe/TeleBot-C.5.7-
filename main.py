@@ -41,7 +41,7 @@ def amount_handler(message: telebot.types.Message, base, sym):
     try:
         new_price = Converter.get_price(base, sym, amount)
     except ApiException as e:
-        bot.send_message(message, f"")
+        bot.send_message(message, f"Ошибка в комманде: \n {e}")
     text = f"Цена {amount} {base} в {sym} : {new_price}"
     bot.reply_to(message, text)
 
